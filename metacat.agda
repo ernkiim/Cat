@@ -1,10 +1,13 @@
+{-# OPTIONS --safe #-}
+
 module MetaCat where
 
 open import Data.Nat using (ℕ) public
 open import Data.Integer hiding (suc) renaming (_≟_ to _≟ℤ_) public
 open import Data.Bool using (Bool; true; false; not; _∧_; _∨_; if_then_else_) renaming (_≟_ to _≟B_) public
+
 open import Relation.Nullary.Decidable
-open import Relation.Binary.PropositionalEquality public
+open import Relation.Binary.PropositionalEquality
 
 -- For all n m ∈ ℤ, return the least nonnegative k ≡ n (mod m) (defined for m = 0)
 _mod_ : ℤ → ℤ → ℤ
