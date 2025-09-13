@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 
-module Minicat where
+module MiniCat where
 
 open import Data.Char using (Char) renaming (_≟_ to _≟Char_)
 open import Data.String using (String) renaming (_≟_ to _≟String_)
@@ -32,8 +32,10 @@ infixl 3 _∋_ _∋?_
 
 infixl 4 _,_↦_
 
--- infixl 3 _—↠_
+infixl 3 _—→_
 
+infixl -1 _≔_
+infixr -2 _⨾_
 
 --- Types
 
@@ -164,16 +166,24 @@ private variable e e₁ e₂ : M ⊢ A
 ... | f = ⟦ e₃ ⟧
 
 
--- A program is a function on memories
+-- Small step
 data _—→_ (M : Memory) : Memory → Set where
+
+  _≔_ : ∀ x (v : M ⊢ A) →
+
+    ------------------
+    M —→ M , x ↦ ⟦ v ⟧
+
+-- Closure
+data _—→*_ (M : Memory) : Memory → Set where
 
   ∅ :
 
-    -----
-    M —→ M
+    -------
+    M —→* M
 
-  _⨾_≔_ :
+  _⨾_ :
 
-    (M —→ M′) → ∀ x (e : M′ ⊢ A) →
-    ---------------------------
-        M —→ (M′ , x ↦ ⟦ e ⟧)
+    M —→ M′ → M′ —→* M″ →
+    ------------------
+         M —→* M″
