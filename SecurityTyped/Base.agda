@@ -26,6 +26,9 @@ open import Cat.SecurityLevels
 σ (if e₁ then e₂ else e₃) = σ e₁ ∨ σ e₂ ∨ σ e₃
 
 data _⊢_OKₛ : Context → Program → Set where
+
+  STProgEmpty : Γ ⊢ ∅ OKₛ
+
   STProg :
 
     Γ ⊢ e ∶ τ  →  σ e ≼ ℒ x  →  (Γ , x ∶ τ) ⊢ 𝒫 OKₛ → 

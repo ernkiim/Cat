@@ -46,10 +46,10 @@ record _=[_]_ (ℳ₁ : Memory) (ς : 𝟚) (ℳ₂ : Memory) : Set where
     =level : ℒ x ≡ ς → ℳ₁ ⊢ var x ⇓ v₁ → ℳ₂ ⊢ var x ⇓ v₂ → v₁ ≡ v₂
   open _=dom_
 
-ctrace—→ : 𝒞 —→* 𝒞′ → List⁺ Configuration
-ctrace—→ {𝒞} refl = [ 𝒞 ]
-ctrace—→ {𝒞} (step ⇓ xs) = {!𝒞 ∷ rec xs!} where
-  rec : 
+-- ctrace—→ : 𝒞 —→* 𝒞′ → List⁺ Configuration
+-- ctrace—→ {𝒞} refl = [ 𝒞 ]
+-- ctrace—→ {𝒞} (step ⇓ xs) = {!𝒞 ∷ rec xs!} where
+--   rec : 
 
 -- Precedence
 infixl 8 _≼_
