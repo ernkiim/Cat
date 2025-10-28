@@ -24,14 +24,14 @@ open import Cat.MiniCat.Base
 ⇓-functional (there⇓ _ 𝒟₁) (there⇓ _ 𝒟₂) = ⇓-functional 𝒟₁ 𝒟₂
 ⇓-functional (not⇓ 𝒟₁) (not⇓ 𝒟₂) with ⇓-functional 𝒟₁ 𝒟₂
 ... | refl = refl
-⇓-functional (f-and⇓ _)    (f-and⇓ _)    = refl
-⇓-functional (f-and⇓ ⇓f)   (t-and⇓ ⇓t _) = contradiction (⇓-functional ⇓t ⇓f) λ ()
-⇓-functional (t-and⇓ ⇓t _) (f-and⇓ ⇓f)   = contradiction (⇓-functional ⇓t ⇓f) λ ()
-⇓-functional (t-and⇓ _ 𝒟₁) (t-and⇓ _ 𝒟₂) = ⇓-functional 𝒟₁ 𝒟₂
-⇓-functional (t-or⇓ _)    (t-or⇓ _)    = refl
-⇓-functional (t-or⇓ ⇓t)   (f-or⇓ ⇓f _) = contradiction (⇓-functional ⇓t ⇓f) λ ()
-⇓-functional (f-or⇓ ⇓f _) (t-or⇓ ⇓t)   = contradiction (⇓-functional ⇓t ⇓f) λ ()
-⇓-functional (f-or⇓ _ 𝒟₁) (f-or⇓ _ 𝒟₂) = ⇓-functional 𝒟₁ 𝒟₂
+⇓-functional (_ f-and⇓)    (_ f-and⇓)    = refl
+⇓-functional (⇓f f-and⇓)   (⇓t t-and⇓ _) = contradiction (⇓-functional ⇓t ⇓f) λ ()
+⇓-functional (⇓t t-and⇓ _) (⇓f f-and⇓)   = contradiction (⇓-functional ⇓t ⇓f) λ ()
+⇓-functional (_ t-and⇓ 𝒟₁) (_ t-and⇓ 𝒟₂) = ⇓-functional 𝒟₁ 𝒟₂
+⇓-functional (_ t-or⇓)    (_ t-or⇓)    = refl
+⇓-functional (⇓t t-or⇓)   (⇓f f-or⇓ _) = contradiction (⇓-functional ⇓t ⇓f) λ ()
+⇓-functional (⇓f f-or⇓ _) (⇓t t-or⇓)   = contradiction (⇓-functional ⇓t ⇓f) λ ()
+⇓-functional (_ f-or⇓ 𝒟₁) (_ f-or⇓ 𝒟₂) = ⇓-functional 𝒟₁ 𝒟₂
 ⇓-functional (𝒟₁ ==⇓ 𝒟₂) (𝒟₃ ==⇓ 𝒟₄) with ⇓-functional 𝒟₁ 𝒟₃ | ⇓-functional 𝒟₂ 𝒟₄
 ... | refl | refl = refl
 ⇓-functional (-⇓ 𝒟₁) (-⇓ 𝒟₂) with ⇓-functional 𝒟₁ 𝒟₂
@@ -67,29 +67,29 @@ open import Cat.MiniCat.Base
 ... | yes ((int  , _) , 𝒟) = no λ { (_ , (not⇓ 𝒟′)) → contradiction (⇓-functional 𝒟 𝒟′) λ () }
 ... | no  ¬⇓               = no λ { (_ , (not⇓ 𝒟′)) → ¬⇓ (_ , 𝒟′) }
 ⇓-decidable ℳ (e₁ and e₂) with ⇓-decidable ℳ e₁
-... | no ¬e₁⇓ = no λ { (_ , f-and⇓ 𝒟₁′)   → ¬e₁⇓ (_ , 𝒟₁′)
-                     ; (_ , t-and⇓ 𝒟₁′ _) → ¬e₁⇓ (_ , 𝒟₁′) }
-... | yes ((int , _) , 𝒟₁) = no λ { (_ , f-and⇓ 𝒟₁′)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                                  ; (_ , t-and⇓ 𝒟₁′ _) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ () }
-... | yes ((bool , false) , 𝒟) = yes (_ , f-and⇓ 𝒟)
+... | no ¬e₁⇓ = no λ { (_ , 𝒟₁′ f-and⇓)   → ¬e₁⇓ (_ , 𝒟₁′)
+                     ; (_ , 𝒟₁′ t-and⇓ _) → ¬e₁⇓ (_ , 𝒟₁′) }
+... | yes ((int , _) , 𝒟₁) = no λ { (_ , 𝒟₁′ f-and⇓)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                                  ; (_ , 𝒟₁′ t-and⇓ _) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ () }
+... | yes ((bool , false) , 𝒟) = yes (_ , 𝒟 f-and⇓)
 ... | yes ((bool , true ) , 𝒟₁) with ⇓-decidable ℳ e₂
-...   | yes ((bool , _) , 𝒟₂) = yes (_ , t-and⇓ 𝒟₁ 𝒟₂)
-...   | yes ((int  , _) , 𝒟₂) = no λ { (_ , f-and⇓ 𝒟₁′)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                                     ; (_ , t-and⇓ _ 𝒟₂′) → contradiction (⇓-functional 𝒟₂ 𝒟₂′) λ () }
-...   | no ¬e₂⇓ = no λ { (_ , f-and⇓ 𝒟₁′)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                       ; (_ , t-and⇓ _ 𝒟₂′) → ¬e₂⇓ (_ , 𝒟₂′) }
+...   | yes ((bool , _) , 𝒟₂) = yes (_ , 𝒟₁ t-and⇓ 𝒟₂)
+...   | yes ((int  , _) , 𝒟₂) = no λ { (_ , 𝒟₁′ f-and⇓)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                                     ; (_ , _ t-and⇓ 𝒟₂′) → contradiction (⇓-functional 𝒟₂ 𝒟₂′) λ () }
+...   | no ¬e₂⇓ = no λ { (_ , 𝒟₁′ f-and⇓)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                       ; (_ , _ t-and⇓ 𝒟₂′) → ¬e₂⇓ (_ , 𝒟₂′) }
 ⇓-decidable ℳ (e₁ or e₂) with ⇓-decidable ℳ e₁
-... | no ¬e₁⇓ = no λ { (_ , t-or⇓ 𝒟₁′)   → ¬e₁⇓ (_ , 𝒟₁′)
-                     ; (_ , f-or⇓ 𝒟₁′ _) → ¬e₁⇓ (_ , 𝒟₁′) }
-... | yes ((int , _) , 𝒟₁) = no λ { (x , t-or⇓ 𝒟₁′)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                                  ; (x , f-or⇓ 𝒟₁′ _) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ () }
-... | yes ((bool , true) , 𝒟) = yes (_ , t-or⇓ 𝒟)
+... | no ¬e₁⇓ = no λ { (_ , 𝒟₁′ t-or⇓)   → ¬e₁⇓ (_ , 𝒟₁′)
+                     ; (_ , 𝒟₁′ f-or⇓ _) → ¬e₁⇓ (_ , 𝒟₁′) }
+... | yes ((int , _) , 𝒟₁) = no λ { (x , 𝒟₁′ t-or⇓)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                                  ; (x , 𝒟₁′ f-or⇓ _) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ () }
+... | yes ((bool , true) , 𝒟) = yes (_ , 𝒟 t-or⇓)
 ... | yes ((bool , false) , 𝒟₁) with ⇓-decidable ℳ e₂
-...   | yes ((bool , _) , 𝒟₂) = yes (_ , f-or⇓ 𝒟₁ 𝒟₂)
-...   | yes ((int  , _) , 𝒟₂) = no λ { (x , t-or⇓ 𝒟₁′)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                                     ; (x , f-or⇓ _ 𝒟₂′) → contradiction (⇓-functional 𝒟₂ 𝒟₂′) λ () }
-...   | no ¬e₂⇓ = no λ { (x , t-or⇓ 𝒟₁′) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
-                       ; (x , f-or⇓ _ 𝒟₂′) → ¬e₂⇓ (_ , 𝒟₂′) }
+...   | yes ((bool , _) , 𝒟₂) = yes (_ , 𝒟₁ f-or⇓ 𝒟₂)
+...   | yes ((int  , _) , 𝒟₂) = no λ { (x , 𝒟₁′ t-or⇓)   → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                                     ; (x , _ f-or⇓ 𝒟₂′) → contradiction (⇓-functional 𝒟₂ 𝒟₂′) λ () }
+...   | no ¬e₂⇓ = no λ { (x , 𝒟₁′ t-or⇓) → contradiction (⇓-functional 𝒟₁ 𝒟₁′) λ ()
+                       ; (x , _ f-or⇓ 𝒟₂′) → ¬e₂⇓ (_ , 𝒟₂′) }
 ⇓-decidable ℳ (e == e₁) with ⇓-decidable ℳ e | ⇓-decidable ℳ e₁ 
 ... | yes ((int  , m) , 𝒟₁) | yes ((int , n) , 𝒟₂) = yes (_ , (𝒟₁ ==⇓ 𝒟₂))
 ... | yes ((bool , b) , 𝒟) | _ = no λ { (_ , (𝒟′ ==⇓ _)) → contradiction (⇓-functional 𝒟 𝒟′ ) λ () }
@@ -160,6 +160,6 @@ normalize (ℳ , 𝒫) = rec ℳ 𝒫 where
 
 =dom-preservation : (ℳ₁ , 𝒫) —→ (ℳ₁′ , 𝒫′) → (ℳ₂ , 𝒫) —→ (ℳ₂′ , 𝒫′) →
   ℳ₁  =dom ℳ₂ → ℳ₁′ =dom ℳ₂′
-=dom-preservation (assign e⇓v₁) (assign e⇓v₂) ⟨ ⊆dom , ⊇dom ⟩ =
-  ⟨ (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊆dom x⇓v .proj₂) })
-  , (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊇dom x⇓v .proj₂) }) ⟩
+=dom-preservation (assign e⇓v₁) (assign e⇓v₂) (⊆dom & ⊇dom) =
+  (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊆dom x⇓v .proj₂) })
+  & (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊇dom x⇓v .proj₂) })

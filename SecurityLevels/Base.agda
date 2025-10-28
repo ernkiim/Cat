@@ -39,7 +39,7 @@ H ∨ _ = H
 
 -- Memory equivalence
 record _=[_]_ (ℳ₁ : Memory) (ς : 𝟚) (ℳ₂ : Memory) : Set where
-  constructor _,_,_
+  constructor _&_&_
   field
     =dom   : ℳ₁ =dom ℳ₂
     ⊆ς : ℒ x ≡ ς → ℳ₁ ⊢ var x ⇓ v → ℳ₂ ⊢ var x ⇓ v

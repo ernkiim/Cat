@@ -9,9 +9,15 @@ open import Relation.Binary.PropositionalEquality
 open import Cat.SecurityLevels.Base
 
 -- Properties of the lattice
+≡-≼ : ς ≡ ς′ → ς ≼ ς′
+≡-≼ refl = refl 
+
 L≼ς : L ≼ ς
 L≼ς {L} = refl
 L≼ς {H} = L≼H
+
+L-⊥ : ς ≼ L → ς ≡ L
+L-⊥ refl = refl
 
 ς≼H : ς ≼ H
 ς≼H {L} = L≼H
