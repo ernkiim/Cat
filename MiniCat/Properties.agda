@@ -158,15 +158,8 @@ normalize (ℳ , 𝒫) = rec ℳ 𝒫 where
   ... | yes (v , ℳ⊢e⇓v) with rec (ℳ , x ↦ v) 𝒫′
   ... | 𝒞′ , —→* , normal = 𝒞′ , (step (ℳ , x ≔ e ⨾ 𝒫′) (assign ℳ⊢e⇓v) —→*) , normal
 
-record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
-  constructor ⟨_,_⟩
-  field
-    ⊆dom : ℳ₁ ⊢ var x ⇓ v₁ → ∃[ v₂ ] ℳ₂ ⊢ var x ⇓ v₂
-    ⊇dom : ℳ₂ ⊢ var x ⇓ v₂ → ∃[ v₁ ] ℳ₁ ⊢ var x ⇓ v₁
-
 =dom-preservation : (ℳ₁ , 𝒫) —→ (ℳ₁′ , 𝒫′) → (ℳ₂ , 𝒫) —→ (ℳ₂′ , 𝒫′) →
-  ℳ₁  =dom ℳ₂ →
-  ℳ₁′ =dom ℳ₂′
+  ℳ₁  =dom ℳ₂ → ℳ₁′ =dom ℳ₂′
 =dom-preservation (assign e⇓v₁) (assign e⇓v₂) ⟨ ⊆dom , ⊇dom ⟩ =
   ⟨ (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊆dom x⇓v .proj₂) })
   , (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊇dom x⇓v .proj₂) }) ⟩

@@ -2,7 +2,6 @@
 
 module Cat.SecurityLevels.Base where
 
-open import Data.List.NonEmpty
 open import Data.Empty
 open import Data.Unit
 open import Data.String using () renaming (String to Variable)
@@ -40,16 +39,18 @@ H ∨ _ = H
 
 -- Memory equivalence
 record _=[_]_ (ℳ₁ : Memory) (ς : 𝟚) (ℳ₂ : Memory) : Set where
-  constructor _,_
+  constructor _,_,_
   field
     =dom   : ℳ₁ =dom ℳ₂
-    =level : ℒ x ≡ ς → ℳ₁ ⊢ var x ⇓ v₁ → ℳ₂ ⊢ var x ⇓ v₂ → v₁ ≡ v₂
+    ⊆ς : ℒ x ≡ ς → ℳ₁ ⊢ var x ⇓ v → ℳ₂ ⊢ var x ⇓ v
+    ⊇ς : ℒ x ≡ ς → ℳ₂ ⊢ var x ⇓ v → ℳ₁ ⊢ var x ⇓ v
   open _=dom_
 
--- ctrace—→ : 𝒞 —→* 𝒞′ → List⁺ Configuration
--- ctrace—→ {𝒞} refl = [ 𝒞 ]
--- ctrace—→ {𝒞} (step ⇓ xs) = {!𝒞 ∷ rec xs!} where
---   rec : 
+-- Trace equivalence
+data _=[_]ₜ_ : 𝒞₁ —→* 𝒞₁′ → 𝟚 → 𝒞₂ —→* 𝒞₂′ → Set where
+  [_] : ℳ₁ =[ ς ] ℳ₂ → refl (ℳ₁ , 𝒫₁) =[ ς ]ₜ refl (ℳ₂ , 𝒫₂)
+  _∷_ : ℳ₁ =[ ς ] ℳ₂ → θ₁ =[ ς ]ₜ θ₂ → ∀ {s₁ s₂}
+    → step (ℳ₁ , 𝒫₁) s₁ θ₁ =[ ς ]ₜ step (ℳ₂ , 𝒫₂) s₂ θ₂
 
 -- Precedence
 infixl 8 _≼_

@@ -23,14 +23,13 @@ variable Γ Γ₁ Γ₂ Γ′ : Context
 ⌊ ∅ ⌋ = ∅
 ⌊ ℳ , x ↦ (τ , _) ⌋ = ⌊ ℳ ⌋ , x ∶ τ
 
-data _∋_∶_ : Context → Variable → Type → Set where
-  zero : Γ , x ∶ τ ∋ x ∶ τ
-  suc  : x ≢ y → Γ ∋ x ∶ τ₁ → Γ , y ∶ τ₂ ∋ x ∶ τ₁
-
 -- Type judgments are made directly over a memory
 data _⊢_∶_ : Context → Expression → Type → Set where
+
   Tval : Γ ⊢ val (τ , V) ∶ τ
-  Tvar : Γ ∋ x ∶ τ → Γ ⊢ var x ∶ τ
+
+  TvarZero : (Γ , x ∶ τ) ⊢ var x ∶ τ
+  TvarSuc : x ≢ y → Γ ⊢ var x ∶ τ → (Γ , y ∶ τ′) ⊢ var x ∶ τ
 
   Tnot_  : Γ ⊢ e ∶ bool → Γ ⊢ not e ∶ bool
   _Tand_ : Γ ⊢ e₁ ∶ bool → Γ ⊢ e₂ ∶ bool → Γ ⊢ e₁ and e₂ ∶ bool
@@ -55,4 +54,3 @@ data _OK : Configuration → Set where
   TConfig : ⌊ ℳ ⌋ ⊢ 𝒫 OK → (ℳ , 𝒫) OK
 
 --- Precedence
-infixl 0 _∋_∶_

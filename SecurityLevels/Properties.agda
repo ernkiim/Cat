@@ -2,6 +2,8 @@
 
 module Cat.SecurityLevels.Properties where
 
+open import Function
+
 open import Relation.Binary.PropositionalEquality
 
 open import Cat.SecurityLevels.Base
@@ -28,6 +30,11 @@ H∨ς≡H {H} = refl
 ς∨H≡H : ς ∨ H ≡ H
 ς∨H≡H {ς} = trans ∨-comm H∨ς≡H
 
+≼-trans : ς₁ ≼ ς₂ → ς₂ ≼ ς₃ → ς₁ ≼ ς₃
+≼-trans refl refl = refl
+≼-trans refl L≼H = L≼H
+≼-trans L≼H refl = L≼H
+
 ≼-∨ₗ : ς₁ ≼ ς₁ ∨ ς₂
 ≼-∨ₗ {L} {ς₂} = L≼ς
 ≼-∨ₗ {H} {L} = refl
@@ -36,3 +43,9 @@ H∨ς≡H {H} = refl
 ≼-∨ᵣ : ς₂ ≼ ς₁ ∨ ς₂
 ≼-∨ᵣ {ς₁} {ς₂} with ς₂ ∨ ς₁ | ∨-comm {ς₁} {ς₂}
 ...               | _       | refl = ≼-∨ₗ
+
+∨-≼ₗ : ς₁ ∨ ς₂ ≼ ς₃ → ς₁ ≼ ς₃
+∨-≼ₗ ∨≼ = ≼-trans ≼-∨ₗ ∨≼
+
+∨-≼ᵣ : ς₁ ∨ ς₂ ≼ ς₃ → ς₂ ≼ ς₃
+∨-≼ᵣ ∨≼ = ≼-trans ≼-∨ᵣ ∨≼

@@ -26,7 +26,7 @@ variable
 data Type : Set where
   int  : Type
   bool : Type
-variable τ τ₁ τ₂ : Type
+variable τ τ′ τ₁ τ₂ : Type
 
 ⟦_⟧τ : Type → Set
 ⟦ int  ⟧τ = ℤ
@@ -122,6 +122,7 @@ data _—→_ : Configuration → Configuration → Set where
 data _—→*_ : Configuration → Configuration → Set where
   refl : ∀ 𝒞 → 𝒞 —→* 𝒞
   step : ∀ 𝒞 → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ → 𝒞 —→* 𝒞″ 
+variable θ θ′ θ₁ θ₁′ θ₂ θ₂′ : 𝒞 —→* 𝒞′
 
 Reducible : Configuration → Set
 Reducible 𝒞 = ∃[ 𝒞′ ] 𝒞 —→ 𝒞′
@@ -131,6 +132,12 @@ Normal = ¬_ ∘ Reducible
 
 Trace : Configuration → Set
 Trace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ × Normal 𝒞′
+
+record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
+  constructor ⟨_,_⟩
+  field
+    ⊆dom : ℳ₁ ⊢ var x ⇓ v₁ → ∃[ v₂ ] ℳ₂ ⊢ var x ⇓ v₂
+    ⊇dom : ℳ₂ ⊢ var x ⇓ v₂ → ∃[ v₁ ] ℳ₁ ⊢ var x ⇓ v₁
 
 --- Precedence declarations
 infix 5 _⊢_⇓_

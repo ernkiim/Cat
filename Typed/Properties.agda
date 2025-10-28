@@ -20,24 +20,13 @@ open import Cat.Typed.Base
 
 --- Expression typing properties
 
-∋-functional : Γ ∋ x ∶ τ₁ → Γ ∋ x ∶ τ₂ → τ₁ ≡ τ₂
-∋-functional zero zero = refl
-∋-functional zero (suc x≢x _) = contradiction refl x≢x
-∋-functional (suc x≢x _) zero = contradiction refl x≢x
-∋-functional (suc _ ∋₁) (suc _ ∋₂) = ∋-functional ∋₁ ∋₂
-
-∋-decidable : ∀ ℳ x → Dec (∃[ τ ] (ℳ ∋ x ∶ τ))
-∋-decidable ∅ _ = no λ ()
-∋-decidable (ℳ , y ∶ τ) x with x M.≟S y
-... | yes refl = yes (τ , zero)
-... | no  ¬x≡y with ∋-decidable ℳ x
-... | yes (τ , ℳ∋x) = yes (τ , suc ¬x≡y ℳ∋x)
-... | no  ¬∃ℳ∋x      = no λ { (_ , zero) → ¬x≡y refl
-                           ; (_ , suc _ ℳ∋x) → ¬∃ℳ∋x (_ , ℳ∋x) }
 
 τ-functional : Γ ⊢ e ∶ τ₁ → Γ ⊢ e ∶ τ₂ → τ₁ ≡ τ₂
 τ-functional Tval Tval = refl
-τ-functional (Tvar ∋₁) (Tvar ∋₂) = ∋-functional ∋₁ ∋₂
+τ-functional TvarZero TvarZero = refl
+τ-functional TvarZero (TvarSuc {x} x≢x 𝒟) = contradiction refl x≢x
+τ-functional (TvarSuc {x} x≢x 𝒟) TvarZero = contradiction refl x≢x
+τ-functional (TvarSuc _ 𝒟₁) (TvarSuc _ 𝒟₂) = τ-functional 𝒟₁ 𝒟₂
 τ-functional (Tnot 𝒟₁) (Tnot 𝒟₂) = refl
 τ-functional (𝒟₁ Tand 𝒟₂) (𝒟₃ Tand 𝒟₄) = refl
 τ-functional (𝒟₁ Tor 𝒟₂) (𝒟₃ Tor 𝒟₄) = refl
@@ -51,9 +40,13 @@ open import Cat.Typed.Base
 
 τ-decidable : ∀ ℳ e → Dec (∃[ τ ] (ℳ ⊢ e ∶ τ))
 τ-decidable ℳ (val (τ , _)) = yes (τ , Tval)
-τ-decidable ℳ (var x) with ∋-decidable ℳ x
-... | yes (τ , ℳ∋x) = yes (τ , Tvar ℳ∋x)
-... | no  ¬∃ℳ∋x     = no λ { (_ , Tvar ℳ∋x) → ¬∃ℳ∋x (_ , ℳ∋x) }
+τ-decidable ∅ (var x) = no λ ()
+τ-decidable (ℳ , y ∶ τ) (var x) with x M.≟S y
+... | no x≢y with τ-decidable ℳ (var x)
+... | yes (τ , 𝒟) = yes (τ , TvarSuc x≢y 𝒟)
+... | no  ¬∃τ = no λ { (τ , TvarZero)     → x≢y refl
+                     ; (τ , TvarSuc _ 𝒟′) → ¬∃τ (τ , 𝒟′) }
+τ-decidable (ℳ , y ∶ τ) (var x) | yes refl = yes (τ , TvarZero)
 τ-decidable ℳ (not e) with τ-decidable ℳ e
 ... | yes (int , 𝒟)  = no λ { (bool , (Tnot 𝒟′)) → contradiction (τ-functional 𝒟 𝒟′) λ () }
 ... | yes (bool , 𝒟) = yes (bool , (Tnot 𝒟))
@@ -117,9 +110,9 @@ open import Cat.Typed.Base
 -- Lemma 1.2: Typing predicts and guarantees evaluation of expressions
 type-⇓ : ⌊ ℳ ⌋ ⊢ e ∶ τ → ∃[ v ] ℳ ⊢ e ⇓ (τ , v)
 type-⇓ Tval = _ , val⇓
-type-⇓ {ℳ , x ↦ V} (Tvar zero) = _ , here⇓
-type-⇓ {ℳ , y ↦ W} (Tvar (suc y≢x ∋)) with type-⇓ (Tvar ∋)
-... | v , ⇓v = v , there⇓ y≢x ⇓v
+type-⇓ {ℳ = ℳ , x ↦ (τ  , v)} TvarZero = v , here⇓
+type-⇓ {ℳ = ℳ , y ↦ (τ′ , w)} (TvarSuc x≢y 𝒟) with type-⇓ 𝒟
+... | v , 𝒟′ = v , there⇓ x≢y 𝒟′
 type-⇓ (Tnot 𝒟) with type-⇓ 𝒟
 ... | b , ⇓b = M.not b , (not⇓ ⇓b)
 type-⇓ (𝒟₁ Tand 𝒟₂) with type-⇓ 𝒟₁
