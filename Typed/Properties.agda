@@ -147,6 +147,22 @@ var-⇓-τ (there⇓ x≢y ⇓) = TvarSuc x≢y (var-⇓-τ ⇓)
 
 --- Program typing
 
+_⊢OK-decidable_ : ∀ Γ 𝒫 → Dec (Γ ⊢ 𝒫 OK)
+Γ ⊢OK-decidable ∅ = yes TProgEmpty
+Γ ⊢OK-decidable (x ≔ e ⨾ 𝒫) with τ-decidable Γ e
+... | no ¬∃τ = no λ { (TProg e:τ _) → ¬∃τ (_ , e:τ) }
+... | yes (τ , e∶τ) with (Γ , x ∶ τ) ⊢OK-decidable 𝒫
+... | yes 𝒟 = yes (TProg e∶τ 𝒟)
+... | no ¬𝒟 = no lemma where
+  lemma : ¬ (Γ ⊢ x ≔ e ⨾ 𝒫 OK)
+  lemma (TProg e∶τ′ 𝒟′) with τ-functional e∶τ e∶τ′
+  ... | refl = ¬𝒟 𝒟′
+
+OK-decidable : ∀ 𝒞 → Dec (𝒞 OK)
+OK-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OK-decidable 𝒫
+... | yes ok = yes (TConfig ok)
+... | no ¬ok = no λ { (TConfig ok) → ¬ok ok }
+
 OK-preservation : 𝒞 OK → 𝒞 —→ 𝒞′ → 𝒞′ OK
 OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v) with ⇓-functional e⇓v (τ-⇓ e∶τ .proj₂)
 ... | refl = TConfig ok
@@ -154,7 +170,12 @@ OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v) with ⇓-functional e
 OK-doesn't-go-wrong : 𝒞 OK → ∃[ ℳ′ ] 𝒞 —→* (ℳ′ , ∅)
 OK-doesn't-go-wrong (TConfig ok) = OK-doesn't-go-wrongₚ ok where
   OK-doesn't-go-wrongₚ : ⌊ ℳ ⌋ ⊢ 𝒫 OK → ∃[ ℳ′ ] (ℳ , 𝒫) —→* (ℳ′ , ∅)
-  OK-doesn't-go-wrongₚ TProgEmpty = _ , refl (_ , ∅)
+  OK-doesn't-go-wrongₚ TProgEmpty = _ , refl
   OK-doesn't-go-wrongₚ {ℳ} {x ≔ e ⨾ 𝒫} (TProg e∶τ ok) with τ-⇓ e∶τ
   ... | v , e⇓v with OK-doesn't-go-wrongₚ {ℳ = ℳ , x ↦ (_ , v)} ok
-  ... | ℳ′ , eval = ℳ′ , step (ℳ , x ≔ e ⨾ 𝒫) (assign e⇓v) eval
+  ... | ℳ′ , eval = ℳ′ , step (assign e⇓v) eval
+
+OK-normal-∅ : (ℳ , 𝒫) OK → Normal (ℳ , 𝒫) → 𝒫 ≡ ∅
+OK-normal-∅ {𝒫 = ∅} _ _ = refl
+OK-normal-∅ {𝒫 = x ≔ e ⨾ 𝒫} ok normal with OK-doesn't-go-wrong ok
+... | ℳ , step 𝒞—→𝒞′ _ = contradiction (_ , 𝒞—→𝒞′) normal

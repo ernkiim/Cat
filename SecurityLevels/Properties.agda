@@ -4,6 +4,8 @@ module Cat.SecurityLevels.Properties where
 
 open import Function
 
+open import Relation.Nullary.Negation
+open import Relation.Nullary.Decidable
 open import Relation.Binary.PropositionalEquality
 
 open import Cat.SecurityLevels.Base
@@ -55,3 +57,9 @@ H∨ς≡H {H} = refl
 
 ∨-≼ᵣ : ς₁ ∨ ς₂ ≼ ς₃ → ς₂ ≼ ς₃
 ∨-≼ᵣ ∨≼ = ≼-trans ≼-∨ᵣ ∨≼
+
+≼-decidable : ∀ ς₁ ς₂ → Dec (ς₁ ≼ ς₂)
+≼-decidable L L = yes refl
+≼-decidable L H = yes L≼H
+≼-decidable H L = no λ ()
+≼-decidable H H = yes refl

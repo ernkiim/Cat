@@ -5,16 +5,18 @@
 
 module Cat.MiniCat.Base where
 
+open import Data.String using (String; _++_)
 open import Relation.Nullary.Decidable using (Dec; yes; no)
 open import Relation.Nullary.Negation
 open import Relation.Binary.PropositionalEquality hiding (trans)
 open import Relation.Binary.Definitions using (DecidableEquality)
 open import Data.Product using (_×_; proj₁; proj₂; Σ; ∃-syntax) renaming (_,_ to ⟨_,_⟩)
+open import Data.Integer.Show
 open import Data.Unit
 
 open import Function
 
-open import Cat.Meta hiding (-_; _+_; _-_; _*_; not; _==_; _mod_; if_then_else_; ap)
+open import Cat.Meta hiding (show; -_; _+_; _-_; _*_; not; _==_; _mod_; if_then_else_; ap)
 open import Cat.Meta as M using (Bool; ℕ; ℤ; Variable)
 
 variable
@@ -66,6 +68,10 @@ pattern +0 = val ⟨ int , + 0 ⟩
 pattern +1 = val ⟨ int , + 1 ⟩
 pattern —1 = val ⟨ int , -[1+ 0 ] ⟩
 
+⟪_⟫ : ⟦ τ ⟧τ → Expression
+⟪_⟫ {int} a = val ⟨ int , a ⟩
+⟪_⟫ {bool} a = val ⟨ bool , a ⟩
+
 -- Memories take variables to values
 data Memory : Set where
   ∅     : Memory
@@ -113,16 +119,15 @@ data Program : Set where
 variable 𝒫 𝒫′ 𝒫₁ 𝒫₁′ 𝒫₂ 𝒫₂′ : Program
   
 Configuration = Memory × Program
-variable 𝒞 𝒞′ 𝒞″ 𝒞₁ 𝒞₁′ 𝒞₂ 𝒞₂′ : Configuration
+variable 𝒞 𝒞′ 𝒞″ 𝒞₁ 𝒞₁′ 𝒞₁″ 𝒞₂ 𝒞₂′ 𝒞₂″ : Configuration
 
 -- Reduction semantics
 data _—→_ : Configuration → Configuration → Set where
   assign : ℳ ⊢ e ⇓ v  → ⟨ ℳ , x ≔ e ⨾ 𝒫 ⟩ —→ ⟨ (ℳ , x ↦ v) , 𝒫 ⟩
 
 data _—→*_ : Configuration → Configuration → Set where
-  refl : ∀ 𝒞 → 𝒞 —→* 𝒞
-  step : ∀ 𝒞 → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ → 𝒞 —→* 𝒞″ 
-variable θ θ′ θ₁ θ₁′ θ₂ θ₂′ : 𝒞 —→* 𝒞′
+  refl : 𝒞 —→* 𝒞
+  step : 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ → 𝒞 —→* 𝒞″
 
 Reducible : Configuration → Set
 Reducible 𝒞 = ∃[ 𝒞′ ] 𝒞 —→ 𝒞′
@@ -130,8 +135,17 @@ Reducible 𝒞 = ∃[ 𝒞′ ] 𝒞 —→ 𝒞′
 Normal : Configuration → Set
 Normal = ¬_ ∘ Reducible
 
-Trace : Configuration → Set
-Trace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ × Normal 𝒞′
+-- Traces are executions whose final configurations are normal
+data _—→*_↛ : Configuration → Configuration → Set where
+  refl : Normal 𝒞 → 𝒞 —→* 𝒞 ↛
+  step : ∀ {𝒞 𝒞′ 𝒞″} → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ ↛ → 𝒞 —→* 𝒞″ ↛
+variable θ θ₁ θ₂ θ₃ : 𝒞 —→* 𝒞′ ↛
+
+head : 𝒞 —→* 𝒞′ ↛ → Memory
+head {⟨ ℳ , _ ⟩} θ = ℳ
+
+FullTrace : Configuration → Set
+FullTrace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ ↛
 
 record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
   constructor _&_
@@ -139,11 +153,12 @@ record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
     ⊆dom : ℳ₁ ⊢ var x ⇓ v₁ → ∃[ v₂ ] ℳ₂ ⊢ var x ⇓ v₂
     ⊇dom : ℳ₂ ⊢ var x ⇓ v₂ → ∃[ v₁ ] ℳ₁ ⊢ var x ⇓ v₁
 
+
 --- Precedence declarations
 infix 5 _⊢_⇓_
-infix 6 _,_↦_
+infixl 6 _,_↦_
 
-infixl 10 _≔_⨾_
+infixr 10 _≔_⨾_
 
 infixl 20 if_then_else_
 

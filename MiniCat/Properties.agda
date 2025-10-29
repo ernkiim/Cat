@@ -149,17 +149,22 @@ reducible-decidable (ℳ , x ≔ e ⨾ 𝒫) with ⇓-decidable ℳ e
 ... | yes (v , 𝒟) = yes ((ℳ , x ↦ v , 𝒫) , assign 𝒟)
 ... | no ¬∃⇓ = no λ { (_ , assign ⇓) → ¬∃⇓ (_ , ⇓) }
 
-normalize : ∀ 𝒞 → Trace 𝒞
+normalize : ∀ 𝒞 → FullTrace 𝒞
 normalize (ℳ , 𝒫) = rec ℳ 𝒫 where
-  rec : ∀ ℳ 𝒫 → ∃[ 𝒞′ ] (ℳ , 𝒫) —→* 𝒞′ × Normal 𝒞′
-  rec ℳ ∅ = (ℳ , ∅) , refl (ℳ , ∅) , λ ()
+  rec : ∀ ℳ 𝒫 → FullTrace (ℳ , 𝒫)
+  rec ℳ ∅ = (ℳ , ∅) , refl λ ()
   rec ℳ 𝒫@(x ≔ e ⨾ 𝒫′) with ⇓-decidable ℳ e
-  ... | no ¬∃e⇓v = (ℳ , 𝒫) , refl (ℳ , x ≔ e ⨾ 𝒫′) , λ { (𝒞′ , assign e⇓v) → ¬∃e⇓v (_ , e⇓v) }
+  ... | no ¬∃e⇓v = (ℳ , 𝒫) , refl λ { (𝒞′ , assign e⇓v) → ¬∃e⇓v (_ , e⇓v) }
   ... | yes (v , ℳ⊢e⇓v) with rec (ℳ , x ↦ v) 𝒫′
-  ... | 𝒞′ , —→* , normal = 𝒞′ , (step (ℳ , x ≔ e ⨾ 𝒫′) (assign ℳ⊢e⇓v) —→*) , normal
+  ... | 𝒞′ , —→* = 𝒞′ , (step (assign ℳ⊢e⇓v) —→*)
+
+-- trace-unique : ∀ (θ₁ θ₂ : FullTrace 𝒞) → θ₁ ≡ θ₂
+
+=dom-ext : ℳ₁ =dom ℳ₂ → (ℳ₁ , x ↦ v₁) =dom (ℳ₂ , x ↦ v₂)
+=dom-ext (⊆dom & ⊇dom) =
+  (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y rest) → ⊆dom rest .proj₁ , there⇓ x≢y (⊆dom rest .proj₂) } ) &
+   λ { here⇓ → _ , here⇓ ; (there⇓ x≢y rest) → ⊇dom rest .proj₁ , there⇓ x≢y (⊇dom rest .proj₂) }
 
 =dom-preservation : (ℳ₁ , 𝒫) —→ (ℳ₁′ , 𝒫′) → (ℳ₂ , 𝒫) —→ (ℳ₂′ , 𝒫′) →
   ℳ₁  =dom ℳ₂ → ℳ₁′ =dom ℳ₂′
-=dom-preservation (assign e⇓v₁) (assign e⇓v₂) (⊆dom & ⊇dom) =
-  (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊆dom x⇓v .proj₂) })
-  & (λ { here⇓ → _ , here⇓ ; (there⇓ x≢y x⇓v) → _ , there⇓ x≢y (⊇dom x⇓v .proj₂) })
+=dom-preservation (assign e⇓v₁) (assign e⇓v₂) =dom = =dom-ext =dom

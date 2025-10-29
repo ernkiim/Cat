@@ -1,3 +1,5 @@
+{-# OPTIONS --safe #-}
+
 module Cat.SecurityTyped where
 
 open import Cat.SecurityTyped.Base public

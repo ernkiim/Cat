@@ -25,7 +25,6 @@ open import Cat.SecurityLevels
 σ (e₁ mod e₂) = σ e₁ ∨ σ e₂
 σ (if e₁ then e₂ else e₃) = σ e₁ ∨ σ e₂ ∨ σ e₃
 
-
 data _⊢_OKₛ : Context → Program → Set where
 
   STProgEmpty : Γ ⊢ ∅ OKₛ
