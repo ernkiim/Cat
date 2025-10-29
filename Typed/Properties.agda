@@ -23,8 +23,8 @@ open import Cat.Typed.Base
 τ-functional : Γ ⊢ e ∶ τ₁ → Γ ⊢ e ∶ τ₂ → τ₁ ≡ τ₂
 τ-functional Tval Tval = refl
 τ-functional TvarZero TvarZero = refl
-τ-functional TvarZero (TvarSuc {x} x≢x 𝒟) = contradiction refl x≢x
-τ-functional (TvarSuc {x} x≢x 𝒟) TvarZero = contradiction refl x≢x
+τ-functional TvarZero (TvarSuc x≢x 𝒟) = contradiction refl x≢x
+τ-functional (TvarSuc x≢x 𝒟) TvarZero = contradiction refl x≢x
 τ-functional (TvarSuc _ 𝒟₁) (TvarSuc _ 𝒟₂) = τ-functional 𝒟₁ 𝒟₂
 τ-functional (Tnot 𝒟₁) (Tnot 𝒟₂) = refl
 τ-functional (𝒟₁ Tand 𝒟₂) (𝒟₃ Tand 𝒟₄) = refl
@@ -110,10 +110,8 @@ open import Cat.Typed.Base
 τ-⇓ : ⌊ ℳ ⌋ ⊢ e ∶ τ → ∃[ v ] ℳ ⊢ e ⇓ (τ , v)
 τ-⇓ Tval = _ , val⇓
 τ-⇓ {ℳ = ℳ , x ↦ (τ  , v)} TvarZero = v , here⇓
-τ-⇓ {ℳ = ℳ , y ↦ (τ′ , w)} (TvarSuc x≢y 𝒟) with τ-⇓ 𝒟
-... | v , 𝒟′ = v , there⇓ x≢y 𝒟′
-τ-⇓ (Tnot 𝒟) with τ-⇓ 𝒟
-... | b , ⇓b = M.not b , (not⇓ ⇓b)
+τ-⇓ {ℳ = ℳ , y ↦ (τ′ , w)} (TvarSuc x≢y 𝒟) with v , 𝒟′ ← τ-⇓ 𝒟 = v , there⇓ x≢y 𝒟′
+τ-⇓ (Tnot 𝒟) with b , ⇓ ← τ-⇓ 𝒟 = M.not b , (not⇓ ⇓)
 τ-⇓ (𝒟₁ Tand 𝒟₂) with τ-⇓ 𝒟₁
 ... | false , ⇓f = false , ⇓f f-and⇓
 ... | true  , ⇓t with τ-⇓ 𝒟₂
@@ -124,8 +122,7 @@ open import Cat.Typed.Base
 ... | b , ⇓b  = b , ⇓f f-or⇓ ⇓b
 τ-⇓ (𝒟₁ T== 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
 ... | m , ⇓m | n , ⇓n = m M.== n , (⇓m ==⇓ ⇓n)
-τ-⇓ (T- 𝒟₁) with τ-⇓ 𝒟₁
-... | n , ⇓n = M.- n , -⇓ ⇓n
+τ-⇓ (T- 𝒟₁) with n , ⇓ ← τ-⇓ 𝒟₁ = M.- n , -⇓ ⇓
 τ-⇓ (𝒟₁ T+ 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
 ... | m , ⇓m | n , ⇓n = m M.+ n , ⇓m +⇓ ⇓n
 τ-⇓ (𝒟₁ T- 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
@@ -155,8 +152,7 @@ _⊢OK-decidable_ : ∀ Γ 𝒫 → Dec (Γ ⊢ 𝒫 OK)
 ... | yes 𝒟 = yes (TProg e∶τ 𝒟)
 ... | no ¬𝒟 = no lemma where
   lemma : ¬ (Γ ⊢ x ≔ e ⨾ 𝒫 OK)
-  lemma (TProg e∶τ′ 𝒟′) with τ-functional e∶τ e∶τ′
-  ... | refl = ¬𝒟 𝒟′
+  lemma (TProg e∶τ′ 𝒟′) with refl ← τ-functional e∶τ e∶τ′ = ¬𝒟 𝒟′
 
 OK-decidable : ∀ 𝒞 → Dec (𝒞 OK)
 OK-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OK-decidable 𝒫
@@ -164,16 +160,17 @@ OK-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OK-decidable 𝒫
 ... | no ¬ok = no λ { (TConfig ok) → ¬ok ok }
 
 OK-preservation : 𝒞 OK → 𝒞 —→ 𝒞′ → 𝒞′ OK
-OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v) with ⇓-functional e⇓v (τ-⇓ e∶τ .proj₂)
-... | refl = TConfig ok
+OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v)
+  with refl ← ⇓-functional e⇓v (τ-⇓ e∶τ .proj₂) = TConfig ok
 
 OK-doesn't-go-wrong : 𝒞 OK → ∃[ ℳ′ ] 𝒞 —→* (ℳ′ , ∅)
 OK-doesn't-go-wrong (TConfig ok) = OK-doesn't-go-wrongₚ ok where
   OK-doesn't-go-wrongₚ : ⌊ ℳ ⌋ ⊢ 𝒫 OK → ∃[ ℳ′ ] (ℳ , 𝒫) —→* (ℳ′ , ∅)
   OK-doesn't-go-wrongₚ TProgEmpty = _ , refl
-  OK-doesn't-go-wrongₚ {ℳ} {x ≔ e ⨾ 𝒫} (TProg e∶τ ok) with τ-⇓ e∶τ
-  ... | v , e⇓v with OK-doesn't-go-wrongₚ {ℳ = ℳ , x ↦ (_ , v)} ok
-  ... | ℳ′ , eval = ℳ′ , step (assign e⇓v) eval
+  OK-doesn't-go-wrongₚ {ℳ} {x ≔ e ⨾ 𝒫} (TProg e∶τ ok)
+    with v  , e⇓v  ← τ-⇓ e∶τ
+    with ℳ′ , rest ← OK-doesn't-go-wrongₚ ok
+    = ℳ′ , step (assign e⇓v) rest
 
 OK-normal-∅ : (ℳ , 𝒫) OK → Normal (ℳ , 𝒫) → 𝒫 ≡ ∅
 OK-normal-∅ {𝒫 = ∅} _ _ = refl

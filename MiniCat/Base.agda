@@ -1,6 +1,6 @@
 {-# OPTIONS --safe #-}
 ------------------------------------------------------------------------
--- Dynamically typed minicat
+-- Untyped (dynamically typed) minicat
 ------------------------------------------------------------------------
 
 module Cat.MiniCat.Base where
@@ -36,9 +36,9 @@ variable τ τ′ τ₁ τ₂ : Type
 variable V W : ⟦ τ ⟧τ
 
 _≟τ_ : DecidableEquality Type
-int ≟τ int = yes refl
-int ≟τ bool = no λ ()
-bool ≟τ int = no λ () 
+int ≟τ int   = yes refl
+int ≟τ bool  = no λ ()
+bool ≟τ int  = no λ () 
 bool ≟τ bool = yes refl
 
 Value = ∃[ τ ] ⟦ τ ⟧τ
@@ -84,7 +84,7 @@ data _⊢_⇓_ : Memory → Expression → Value → Set where
   val⇓ : ℳ ⊢ val v ⇓ v
 
   here⇓ : (ℳ , x ↦ v) ⊢ var x ⇓ v
-  there⇓ : (x ≢ y) → (ℳ ⊢ var x ⇓ v) → (ℳ , y ↦ w) ⊢ var x ⇓ v
+  there⇓ : x ≢ y → ℳ ⊢ var x ⇓ v → (ℳ , y ↦ w) ⊢ var x ⇓ v
 
   not⇓_ : ℳ ⊢ e ⇓ ⟨ bool , b ⟩ → ℳ ⊢ not e ⇓ ⟨ bool , M.not b ⟩
   _f-and⇓ : ℳ ⊢ e₁ ⇓ ⟨ _ , false ⟩ → ℳ ⊢ e₁ and e₂ ⇓ ⟨ _ , false ⟩
@@ -98,7 +98,6 @@ data _⊢_⇓_ : Memory → Expression → Value → Set where
   _-⇓_ : ℳ ⊢ e₁ ⇓ ⟨ int , m ⟩ → ℳ ⊢ e₂ ⇓ ⟨ int , n ⟩ → ℳ ⊢ e₁ - e₂ ⇓ ⟨ int , m M.- n ⟩
   _*⇓_ : ℳ ⊢ e₁ ⇓ ⟨ int , m ⟩ → ℳ ⊢ e₂ ⇓ ⟨ int , n ⟩ → ℳ ⊢ e₁ * e₂ ⇓ ⟨ int , m M.* n ⟩
   _mod⇓_ : ℳ ⊢ e₁ ⇓ ⟨ int , m ⟩ → ℳ ⊢ e₂ ⇓ ⟨ int , n ⟩ → ℳ ⊢ e₁ mod e₂ ⇓ ⟨ int , m M.mod n ⟩
-  
 
   then⇓ :
 
@@ -111,6 +110,7 @@ data _⊢_⇓_ : Memory → Expression → Value → Set where
     ℳ ⊢ e₁ ⇓ ⟨ _ , false ⟩ → ℳ ⊢ e₃ ⇓ v →
     -------------------------------------
       ℳ ⊢ if e₁ then e₂ else e₃ ⇓ v
+
 
 -- Programs are lists of assignments
 data Program : Set where
@@ -136,16 +136,17 @@ Normal : Configuration → Set
 Normal = ¬_ ∘ Reducible
 
 -- Traces are executions whose final configurations are normal
-data _—→*_↛ : Configuration → Configuration → Set where
-  refl : Normal 𝒞 → 𝒞 —→* 𝒞 ↛
-  step : ∀ {𝒞 𝒞′ 𝒞″} → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ ↛ → 𝒞 —→* 𝒞″ ↛
-variable θ θ₁ θ₂ θ₃ : 𝒞 —→* 𝒞′ ↛
+data _—→*_—̸→ : Configuration → Configuration → Set where
+  refl : Normal 𝒞 → 𝒞 —→* 𝒞 —̸→
+  step : ∀ {𝒞 𝒞′ 𝒞″} → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ —̸→ → 𝒞 —→* 𝒞″ —̸→
+variable θ θ₁ θ₂ θ₃ : 𝒞 —→* 𝒞′ —̸→
 
-head : 𝒞 —→* 𝒞′ ↛ → Memory
+head : 𝒞 —→* 𝒞′ —̸→ → Memory
 head {⟨ ℳ , _ ⟩} θ = ℳ
 
 FullTrace : Configuration → Set
-FullTrace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ ↛
+FullTrace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ —̸→
+
 
 record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
   constructor _&_

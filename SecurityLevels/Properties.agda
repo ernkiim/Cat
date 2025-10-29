@@ -25,6 +25,12 @@ L-⊥ refl = refl
 ς≼H {L} = L≼H
 ς≼H {H} = refl
 
+L≢H : L ≢ H
+L≢H = λ ()
+
+H≢L : H ≢ L
+H≢L = λ ()
+
 ∨-comm : ς₁ ∨ ς₂ ≡ ς₂ ∨ ς₁
 ∨-comm {L} {L} = refl
 ∨-comm {L} {H} = refl
