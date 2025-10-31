@@ -2,8 +2,6 @@
 
 module Cat.MiniCat.Properties where
 
-open import Data.List.NonEmpty
-
 open import Relation.Nullary.Negation using (¬_; contradiction; contraposition)
 open import Relation.Nullary.Decidable using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; _≢_)
@@ -149,14 +147,14 @@ reducible-decidable (ℳ , x ≔ e ⨾ 𝒫) with ⇓-decidable ℳ e
 ... | yes (v , 𝒟) = yes ((ℳ , x ↦ v , 𝒫) , assign 𝒟)
 ... | no ¬∃⇓ = no λ { (_ , assign ⇓) → ¬∃⇓ (_ , ⇓) }
 
-normalize : ∀ 𝒞 → FullTrace 𝒞
+normalize : ∀ 𝒞 → ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ —̸→
 normalize (ℳ , 𝒫) = rec ℳ 𝒫 where
-  rec : ∀ ℳ 𝒫 → FullTrace (ℳ , 𝒫)
-  rec ℳ ∅ = (ℳ , ∅) , refl λ ()
+  rec : ∀ ℳ 𝒫 → ∃[ 𝒞′ ]  (ℳ , 𝒫) —→* 𝒞′ —̸→
+  rec ℳ ∅ = (ℳ , ∅) , [ (λ ()) ]
   rec ℳ 𝒫@(x ≔ e ⨾ 𝒫′) with ⇓-decidable ℳ e
-  ... | no ¬∃e⇓v = (ℳ , 𝒫) , refl λ { (𝒞′ , assign e⇓v) → ¬∃e⇓v (_ , e⇓v) }
+  ... | no ¬∃e⇓v = (ℳ , 𝒫) , [ (λ { (𝒞′ , assign e⇓v) → ¬∃e⇓v (_ , e⇓v) }) ]
   ... | yes (v , ℳ⊢e⇓v) with rec (ℳ , x ↦ v) 𝒫′
-  ... | 𝒞′ , —→* = 𝒞′ , (step (assign ℳ⊢e⇓v) —→*)
+  ... | 𝒞′ , —→* = 𝒞′ , (assign ℳ⊢e⇓v) ∷ —→*
 
 -- trace-unique : ∀ (θ₁ θ₂ : FullTrace 𝒞) → θ₁ ≡ θ₂
 

@@ -7,6 +7,8 @@
 module Cat.SecurityTyped.Base where
 
 open import Data.Product using (_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_)
+
 open import Cat.Typed
 open import Cat.SecurityLevels
 
@@ -52,7 +54,7 @@ record _=[_]_ (ℳ₁ : Memory) (ς : 𝟚) (ℳ₂ : Memory) : Set where
 
 -- Equivalence of traces (we use derivation trees of reduction as traces)
 data _=[_]ₙ_ : 𝒞₁ —→* 𝒞₁′ —̸→ → 𝟚 → 𝒞₂ —→* 𝒞₂′ —̸→ → Set where
-  [_] : {n₁ : Normal (ℳ₁ , 𝒫)} {n₂ : Normal (ℳ₂ , 𝒫)} →
-    ℳ₁ =[ ς ] ℳ₂ → refl n₁ =[ ς ]ₙ refl n₂
+  [_] : {—̸→₁ : Normal (ℳ₁ , 𝒫)} {—̸→₂ : Normal (ℳ₂ , 𝒫)} →
+    ℳ₁ =[ ς ] ℳ₂ → [ —̸→₁ ] =[ ς ]ₙ [ —̸→₂ ]
   _∷_ : {s₁ : (ℳ₁ , 𝒫) —→ 𝒞₁′} {s₂ : (ℳ₂ , 𝒫) —→ 𝒞₂′} →
-    ℳ₁ =[ ς ] ℳ₂ → θ₁ =[ ς ]ₙ θ₂ → step s₁ θ₁ =[ ς ]ₙ step s₂ θ₂
+    ℳ₁ =[ ς ] ℳ₂ → θ₁ =[ ς ]ₙ θ₂ → (s₁ ∷ θ₁) =[ ς ]ₙ (s₂ ∷ θ₂)

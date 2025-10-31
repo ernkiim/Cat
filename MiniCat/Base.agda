@@ -138,15 +138,12 @@ Normal = ¬_ ∘ Reducible
 
 -- Traces are executions whose final configurations are normal
 data _—→*_—̸→ : Configuration → Configuration → Set where
-  refl : Normal 𝒞 → 𝒞 —→* 𝒞 —̸→
-  step : ∀ {𝒞 𝒞′ 𝒞″} → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ —̸→ → 𝒞 —→* 𝒞″ —̸→
+  [_] : Normal 𝒞 → 𝒞 —→* 𝒞 —̸→
+  _∷_ : ∀ {𝒞 𝒞′ 𝒞″} → 𝒞 —→ 𝒞′ → 𝒞′ —→* 𝒞″ —̸→ → 𝒞 —→* 𝒞″ —̸→
 variable θ θ₁ θ₂ θ₃ : 𝒞 —→* 𝒞′ —̸→
 
 head : 𝒞 —→* 𝒞′ —̸→ → Memory
 head {⟨ ℳ , _ ⟩} θ = ℳ
-
-FullTrace : Configuration → Set
-FullTrace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ —̸→
 
 -- Equality of domains
 record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where

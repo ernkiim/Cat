@@ -70,10 +70,10 @@ OKₛ-preservation (STConfig (STProg e∶τ ≼ ok)) (assign e⇓v)
 OKₛ-noninterference : (ℳ₁ , 𝒫) OKₛ → (ℳ₂ , 𝒫) OKₛ →
   (θ₁ : (ℳ₁ , 𝒫) —→* 𝒞₁ —̸→) (θ₂ : (ℳ₂ , 𝒫) —→* 𝒞₂ —̸→) →
   head θ₁ =[ L ] head θ₂ → θ₁ =[ L ]ₙ θ₂
-OKₛ-noninterference ok₁ ok₂ (refl n₁) (refl n₂) =[L] = [ =[L] ]
-OKₛ-noninterference ok₁ ok₂ (refl n₁) (step (assign e⇓v) θ₂) =[L] = contradiction (OK-normal-∅ ⌊ ok₁ ⌋ₛ n₁) λ ()
-OKₛ-noninterference ok₁ ok₂ (step (assign e⇓v) θ₁) (refl n₂) =[L] = contradiction (OK-normal-∅ ⌊ ok₂ ⌋ₛ n₂) λ ()
-OKₛ-noninterference ok₁ ok₂ (step (assign e⇓v) θ₁) (step (assign e⇓v′) θ₂) =[L] =
+OKₛ-noninterference ok₁ ok₂ [ —̸→₁ ] [ —̸→₂ ] =[L] = [ =[L] ]
+OKₛ-noninterference ok₁ ok₂ [ —̸→₁ ] ((assign e⇓v) ∷ θ₂) =[L] = contradiction (OK-normal-∅ ⌊ ok₁ ⌋ₛ —̸→₁) λ ()
+OKₛ-noninterference ok₁ ok₂ ((assign e⇓v) ∷ θ₂) [ —̸→₂ ] =[L] = contradiction (OK-normal-∅ ⌊ ok₂ ⌋ₛ —̸→₂) λ ()
+OKₛ-noninterference ok₁ ok₂ ((assign e⇓v) ∷ θ₁) ((assign e⇓v′) ∷ θ₂) =[L] = 
   =[L] ∷ OKₛ-noninterference (OKₛ-preservation ok₁ (assign e⇓v))
                              (OKₛ-preservation ok₂ (assign e⇓v′))
                              θ₁ θ₂ (=[L]-preservation ok₁ ok₂ (assign e⇓v) (assign e⇓v′) =[L])
