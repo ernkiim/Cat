@@ -65,7 +65,8 @@ OKₛ-preservation (STConfig (STProg e∶τ ≼ ok)) (assign e⇓v)
 ... | _ | H = =[ς]-ext-≢ =[L] (H≢L ∘ trans (sym ℒx≡))
 ... | L | L with refl ← ⇓-functional (=[L]-⇓-wf =[L] σe≡ ℳ₁⊢e⇓v) ℳ₂⊢e⇓v′ = =[ς]-ext =[L]
 
--- Main Theorem
+-- Main Theorem. Traces θ are derivation trees of evaluation, with proofs
+-- that the final configurations are normal (see Cat/MiniCat/Base.agda)
 OKₛ-noninterference : (ℳ₁ , 𝒫) OKₛ → (ℳ₂ , 𝒫) OKₛ →
   (θ₁ : (ℳ₁ , 𝒫) —→* 𝒞₁ —̸→) (θ₂ : (ℳ₂ , 𝒫) —→* 𝒞₂ —̸→) →
   head θ₁ =[ L ] head θ₂ → θ₁ =[ L ]ₙ θ₂
