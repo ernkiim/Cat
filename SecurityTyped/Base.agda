@@ -41,20 +41,3 @@ data _⊢_OKₛ : Context → Program → Set where
 
 data _OKₛ : Configuration → Set where
   STConfig : ⌊ ℳ ⌋ ⊢ 𝒫 OKₛ → (ℳ , 𝒫) OKₛ
-
-
--- Memory equivalence
-record _=[_]_ (ℳ₁ : Memory) (ς : 𝟚) (ℳ₂ : Memory) : Set where
-  constructor _&_&_
-  field
-    =dom   : ℳ₁ =dom ℳ₂
-    ⊆ς : ℒ x ≡ ς → ℳ₁ ⊢ var x ⇓ v → ℳ₂ ⊢ var x ⇓ v
-    ⊇ς : ℒ x ≡ ς → ℳ₂ ⊢ var x ⇓ v → ℳ₁ ⊢ var x ⇓ v
-  open _=dom_
-
--- Equivalence of traces (we use derivation trees of reduction as traces)
-data _=[_]ₙ_ : 𝒞₁ —→* 𝒞₁′ —̸→ → 𝟚 → 𝒞₂ —→* 𝒞₂′ —̸→ → Set where
-  [_] : {—̸→₁ : Normal (ℳ₁ , 𝒫)} {—̸→₂ : Normal (ℳ₂ , 𝒫)} →
-    ℳ₁ =[ ς ] ℳ₂ → [ —̸→₁ ] =[ ς ]ₙ [ —̸→₂ ]
-  _∷_ : {s₁ : (ℳ₁ , 𝒫) —→ 𝒞₁′} {s₂ : (ℳ₂ , 𝒫) —→ 𝒞₂′} →
-    ℳ₁ =[ ς ] ℳ₂ → θ₁ =[ ς ]ₙ θ₂ → (s₁ ∷ θ₁) =[ ς ]ₙ (s₂ ∷ θ₂)

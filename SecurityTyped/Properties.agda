@@ -24,7 +24,7 @@ open import Cat.SecurityTyped.Base
   (λ { refl here⇓ → contradiction refl ℒx≢ς ; refl (there⇓ x≢y rest) → there⇓ x≢y (⊆ς refl rest) }) &
    λ { refl here⇓ → contradiction refl ℒx≢ς ; refl (there⇓ x≢y rest) → there⇓ x≢y (⊇ς refl rest) }
 
--- Well-formedness: a low-security expression (independent of ℳ) evaluates
+-- Well-definedness a low-security expression (independent of ℳ) evaluates
 -- the same over low-equivalent memories
 =[L]-⇓-wf : ℳ₁ =[ L ] ℳ₂ → σ e ≡ L → ℳ₁ ⊢ e ⇓ v → ℳ₂ ⊢ e ⇓ v
 =[L]-⇓-wf {e = var x} (=dom & ⊆ς & ⊇ς) σe≡L x⇓v = ⊆ς σe≡L x⇓v

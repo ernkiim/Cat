@@ -2,10 +2,11 @@
 
 module Cat.MiniCat.Properties where
 
+open import Data.Product using (_×_; proj₁; proj₂; Σ; _,_; ∃-syntax)
+
 open import Relation.Nullary.Negation using (¬_; contradiction; contraposition)
 open import Relation.Nullary.Decidable using (Dec; yes; no)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong; _≢_)
-open import Data.Product using (_×_; proj₁; proj₂; Σ; _,_; ∃-syntax)
 open import Function
 
 open import Cat.Meta as M using (_≟S_; true; false)
@@ -155,8 +156,6 @@ normalize (ℳ , 𝒫) = rec ℳ 𝒫 where
   ... | no ¬∃e⇓v = (ℳ , 𝒫) , [ (λ { (𝒞′ , assign e⇓v) → ¬∃e⇓v (_ , e⇓v) }) ]
   ... | yes (v , ℳ⊢e⇓v) with rec (ℳ , x ↦ v) 𝒫′
   ... | 𝒞′ , —→* = 𝒞′ , (assign ℳ⊢e⇓v) ∷ —→*
-
--- trace-unique : ∀ (θ₁ θ₂ : FullTrace 𝒞) → θ₁ ≡ θ₂
 
 =dom-ext : ℳ₁ =dom ℳ₂ → (ℳ₁ , x ↦ v₁) =dom (ℳ₂ , x ↦ v₂)
 =dom-ext (⊆dom & ⊇dom) =
