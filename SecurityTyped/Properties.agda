@@ -26,22 +26,22 @@ open import Cat.SecurityTyped.Base
 
 -- Well-definedness a low-security expression (independent of ℳ) evaluates
 -- the same over low-equivalent memories
-=[L]-⇓-wf : ℳ₁ =[ L ] ℳ₂ → σ e ≡ L → ℳ₁ ⊢ e ⇓ v → ℳ₂ ⊢ e ⇓ v
-=[L]-⇓-wf {e = var x} (=dom & ⊆ς & ⊇ς) σe≡L x⇓v = ⊆ς σe≡L x⇓v
-=[L]-⇓-wf =[L] σe≡L val⇓ = val⇓
-=[L]-⇓-wf =[L] σe≡L (not⇓ 𝒟₁) = not⇓ =[L]-⇓-wf =[L] σe≡L 𝒟₁
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ f-and⇓)    = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-and⇓
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ t-or⇓)     = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-or⇓
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ t-and⇓ 𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-and⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ f-or⇓  𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-or⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ ==⇓    𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ ==⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (-⇓ 𝒟₁)      = -⇓ =[L]-⇓-wf =[L] σe≡L 𝒟₁
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ +⇓ 𝒟₂)   = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ +⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ -⇓ 𝒟₂)   = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ -⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ *⇓ 𝒟₂)   = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ *⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ mod⇓ 𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ mod⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
-=[L]-⇓-wf =[L] σe≡L (then⇓ 𝒟₁ 𝒟₂) = then⇓ (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₁) (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₂)
-=[L]-⇓-wf =[L] σe≡L (else⇓ 𝒟₁ 𝒟₃) = else⇓ (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₁) (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₃)
+=[L]-⇓-wd : ℳ₁ =[ L ] ℳ₂ → σ e ≡ L → ℳ₁ ⊢ e ⇓ v → ℳ₂ ⊢ e ⇓ v
+=[L]-⇓-wd {e = var x} (=dom & ⊆ς & ⊇ς) σe≡L x⇓v = ⊆ς σe≡L x⇓v
+=[L]-⇓-wd =[L] σe≡L val⇓ = val⇓
+=[L]-⇓-wd =[L] σe≡L (not⇓ 𝒟₁) = not⇓ =[L]-⇓-wd =[L] σe≡L 𝒟₁
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ f-and⇓)    = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-and⇓
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ t-or⇓)     = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-or⇓
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ t-and⇓ 𝒟₂) = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-and⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ f-or⇓  𝒟₂) = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-or⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ ==⇓    𝒟₂) = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ ==⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (-⇓ 𝒟₁)      = -⇓ =[L]-⇓-wd =[L] σe≡L 𝒟₁
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ +⇓ 𝒟₂)   = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ +⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ -⇓ 𝒟₂)   = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ -⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ *⇓ 𝒟₂)   = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ *⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (𝒟₁ mod⇓ 𝒟₂) = =[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ mod⇓ =[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
+=[L]-⇓-wd =[L] σe≡L (then⇓ 𝒟₁ 𝒟₂) = then⇓ (=[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₁) (=[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₂)
+=[L]-⇓-wd =[L] σe≡L (else⇓ 𝒟₁ 𝒟₃) = else⇓ (=[L]-⇓-wd =[L] (L-⊥ (∨-≼ₗ (∨-≼ₗ (≡-≼ σe≡L)))) 𝒟₁) (=[L]-⇓-wd =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₃)
 
 --- OKₛ typing properties
 
@@ -63,7 +63,7 @@ OKₛ-preservation (STConfig (STProg e∶τ ≼ ok)) (assign e⇓v)
 =[L]-preservation (STConfig (STProg {e = e} {x = x} _ _ _)) _ (assign ℳ₁⊢e⇓v) (assign ℳ₂⊢e⇓v′) =[L]
   with σ e in σe≡ | ℒ x in ℒx≡
 ... | _ | H = =[ς]-ext-≢ =[L] (H≢L ∘ trans (sym ℒx≡))
-... | L | L with refl ← ⇓-functional (=[L]-⇓-wf =[L] σe≡ ℳ₁⊢e⇓v) ℳ₂⊢e⇓v′ = =[ς]-ext =[L]
+... | L | L with refl ← ⇓-functional (=[L]-⇓-wd =[L] σe≡ ℳ₁⊢e⇓v) ℳ₂⊢e⇓v′ = =[ς]-ext =[L]
 
 -- Main Theorem. Traces θ are derivation trees of evaluation, with proofs
 -- that the final configurations are normal (see Cat/MiniCat/Base.agda)
