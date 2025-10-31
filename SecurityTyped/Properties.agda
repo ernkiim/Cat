@@ -24,12 +24,14 @@ open import Cat.SecurityTyped.Base
   (λ { refl here⇓ → contradiction refl ℒx≢ς ; refl (there⇓ x≢y rest) → there⇓ x≢y (⊆ς refl rest) }) &
    λ { refl here⇓ → contradiction refl ℒx≢ς ; refl (there⇓ x≢y rest) → there⇓ x≢y (⊇ς refl rest) }
 
+-- Well-formedness: a low-security expression (independent of ℳ) evaluates
+-- the same over low-equivalent memories
 =[L]-⇓-wf : ℳ₁ =[ L ] ℳ₂ → σ e ≡ L → ℳ₁ ⊢ e ⇓ v → ℳ₂ ⊢ e ⇓ v
 =[L]-⇓-wf {e = var x} (=dom & ⊆ς & ⊇ς) σe≡L x⇓v = ⊆ς σe≡L x⇓v
 =[L]-⇓-wf =[L] σe≡L val⇓ = val⇓
 =[L]-⇓-wf =[L] σe≡L (not⇓ 𝒟₁) = not⇓ =[L]-⇓-wf =[L] σe≡L 𝒟₁
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ f-and⇓) = (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁) f-and⇓
-=[L]-⇓-wf =[L] σe≡L (𝒟₁ t-or⇓)  = (=[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁) t-or⇓
+=[L]-⇓-wf =[L] σe≡L (𝒟₁ f-and⇓)    = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-and⇓
+=[L]-⇓-wf =[L] σe≡L (𝒟₁ t-or⇓)     = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-or⇓
 =[L]-⇓-wf =[L] σe≡L (𝒟₁ t-and⇓ 𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ t-and⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
 =[L]-⇓-wf =[L] σe≡L (𝒟₁ f-or⇓  𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ f-or⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
 =[L]-⇓-wf =[L] σe≡L (𝒟₁ ==⇓    𝒟₂) = =[L]-⇓-wf =[L] (L-⊥ (∨-≼ₗ (≡-≼ σe≡L))) 𝒟₁ ==⇓ =[L]-⇓-wf =[L] (L-⊥ (∨-≼ᵣ (≡-≼ σe≡L))) 𝒟₂
@@ -49,26 +51,9 @@ open import Cat.SecurityTyped.Base
   lemma STProgEmpty = TProgEmpty
   lemma (STProg {τ = τ} e∶τ ≼ℒx ok) = TProg e∶τ (lemma ok)
 
-_⊢OKₛ-decidable_ : ∀ Γ 𝒫 → Dec (Γ ⊢ 𝒫 OKₛ)
-Γ ⊢OKₛ-decidable ∅ = yes STProgEmpty
-Γ ⊢OKₛ-decidable (x ≔ e ⨾ 𝒫) with τ-decidable Γ e
-... | no  ¬∃τ = no λ { (STProg 𝒟′ _ _) → ¬∃τ (_ , 𝒟′) }
-... | yes (τ , 𝒟) with ≼-decidable (σ e) (ℒ x)
-... | no  σe≻ℒx = no λ { (STProg _ σe≼ℒx _) → σe≻ℒx σe≼ℒx }
-... | yes σe≼ℒx with (Γ , x ∶ τ) ⊢OKₛ-decidable 𝒫
-... | yes rest = yes (STProg 𝒟 σe≼ℒx rest)
-... | no ¬rest = no lemma where
-  lemma : ¬ (Γ ⊢ x ≔ e ⨾ 𝒫 OKₛ)
-  lemma (STProg 𝒟′ _ rest′) with refl ← τ-functional 𝒟 𝒟′ = ¬rest rest′
-
-OKₛ-decidable : ∀ 𝒞 → Dec (𝒞 OKₛ)
-OKₛ-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OKₛ-decidable 𝒫
-... | yes ok = yes (STConfig ok)
-... | no ¬ok = no λ { (STConfig ok) → ¬ok ok }
-
 -- Lemma: —→ preserves OKₛ
 OKₛ-preservation : 𝒞 OKₛ → 𝒞 —→ 𝒞′ → 𝒞′ OKₛ
-OKₛ-preservation (STConfig (STProg e∶τ ≼ ok)) (assign {v = v} e⇓v)
+OKₛ-preservation (STConfig (STProg e∶τ ≼ ok)) (assign e⇓v)
   with refl ← ⇓-functional e⇓v (proj₂ (τ-⇓ e∶τ)) = STConfig ok
 
 -- Lemma: —→ preserves low-equivalence for OKₛ configurations
@@ -91,3 +76,24 @@ OKₛ-noninterference ok₁ ok₂ (step (assign e⇓v) θ₁) (step (assign e⇓
   =[L] ∷ OKₛ-noninterference (OKₛ-preservation ok₁ (assign e⇓v))
                              (OKₛ-preservation ok₂ (assign e⇓v′))
                              θ₁ θ₂ (=[L]-preservation ok₁ ok₂ (assign e⇓v) (assign e⇓v′) =[L])
+
+
+--- Decidability
+
+_⊢OKₛ-decidable_ : ∀ Γ 𝒫 → Dec (Γ ⊢ 𝒫 OKₛ)
+Γ ⊢OKₛ-decidable ∅ = yes STProgEmpty
+Γ ⊢OKₛ-decidable (x ≔ e ⨾ 𝒫) with τ-decidable Γ e
+... | no  ¬∃τ = no λ { (STProg 𝒟′ _ _) → ¬∃τ (_ , 𝒟′) }
+... | yes (τ , 𝒟) with ≼-decidable (σ e) (ℒ x)
+... | no  σe≻ℒx = no λ { (STProg _ σe≼ℒx _) → σe≻ℒx σe≼ℒx }
+... | yes σe≼ℒx with (Γ , x ∶ τ) ⊢OKₛ-decidable 𝒫
+... | yes rest = yes (STProg 𝒟 σe≼ℒx rest)
+... | no ¬rest = no lemma where
+  lemma : ¬ (Γ ⊢ x ≔ e ⨾ 𝒫 OKₛ)
+  lemma (STProg 𝒟′ _ rest′) with refl ← τ-functional 𝒟 𝒟′ = ¬rest rest′
+
+OKₛ-decidable : ∀ 𝒞 → Dec (𝒞 OKₛ)
+OKₛ-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OKₛ-decidable 𝒫
+... | yes ok = yes (STConfig ok)
+... | no ¬ok = no λ { (STConfig ok) → ¬ok ok }
+

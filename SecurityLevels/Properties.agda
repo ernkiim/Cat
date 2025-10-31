@@ -10,7 +10,7 @@ open import Relation.Binary.PropositionalEquality
 
 open import Cat.SecurityLevels.Base
 
--- Properties of the lattice
+-- Lattice properties
 ≡-≼ : ς ≡ ς′ → ς ≼ ς′
 ≡-≼ refl = refl 
 

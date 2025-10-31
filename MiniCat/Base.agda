@@ -24,7 +24,7 @@ variable
   m n : ℤ
   x y z : Variable
 
--- Values have types
+-- Values know about their type
 data Type : Set where
   int  : Type
   bool : Type
@@ -78,7 +78,7 @@ data Memory : Set where
   _,_↦_ : Memory → Variable → Value → Memory
 variable ℳ ℳ′ ℳ₁ ℳ₂ ℳ₁′ ℳ₂′ : Memory
 
--- Evaluation
+-- Evaluation of expressions
 data _⊢_⇓_ : Memory → Expression → Value → Set where
 
   val⇓ : ℳ ⊢ val v ⇓ v
@@ -87,6 +87,7 @@ data _⊢_⇓_ : Memory → Expression → Value → Set where
   there⇓ : x ≢ y → ℳ ⊢ var x ⇓ v → (ℳ , y ↦ w) ⊢ var x ⇓ v
 
   not⇓_ : ℳ ⊢ e ⇓ ⟨ bool , b ⟩ → ℳ ⊢ not e ⇓ ⟨ bool , M.not b ⟩
+  -- I made _and_ and _or_ short-circuit
   _f-and⇓ : ℳ ⊢ e₁ ⇓ ⟨ _ , false ⟩ → ℳ ⊢ e₁ and e₂ ⇓ ⟨ _ , false ⟩
   _t-or⇓  : ℳ ⊢ e₁ ⇓ ⟨ _ , true  ⟩ → ℳ ⊢ e₁ or  e₂ ⇓ ⟨ _ , true ⟩
   _t-and⇓_ : ℳ ⊢ e₁ ⇓ ⟨ _ , true  ⟩ → ℳ ⊢ e₂ ⇓ ⟨ _ , b ⟩ → ℳ ⊢ e₁ and e₂ ⇓ ⟨ _ , b ⟩
@@ -147,7 +148,7 @@ head {⟨ ℳ , _ ⟩} θ = ℳ
 FullTrace : Configuration → Set
 FullTrace 𝒞 = ∃[ 𝒞′ ] 𝒞 —→* 𝒞′ —̸→
 
-
+-- Equality of domains
 record _=dom_ (ℳ₁ ℳ₂ : Memory) : Set where
   constructor _&_
   field

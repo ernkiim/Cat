@@ -14,16 +14,19 @@ open import Relation.Binary.PropositionalEquality
 open import Cat.MiniCat.Base
 open import Cat.Meta as M using (Variable) renaming (true to t; false to f)
 
+-- Contexts take variables to types
 data Context : Set where
   ∅ : Context
   _,_∶_ : Context → Variable → Type → Context
 variable Γ Γ₁ Γ₂ Γ′ : Context  
 
+-- Lowering from Memory to Context (\rightsquigarrow)
 ⌊_⌋ : Memory → Context
 ⌊ ∅ ⌋ = ∅
 ⌊ ℳ , x ↦ (τ , _) ⌋ = ⌊ ℳ ⌋ , x ∶ τ
 
--- Type judgments are made directly over a memory
+-- Expression type judgments: TUnop, TBinop are split into Tand, Tor, etc. to
+-- avoid the partial function δ. TvarZero, Suc are rules for variable scoping
 data _⊢_∶_ : Context → Expression → Type → Set where
 
   Tval : Γ ⊢ val (τ , V) ∶ τ
@@ -45,12 +48,11 @@ data _⊢_∶_ : Context → Expression → Type → Set where
   Tcond : Γ ⊢ e₁ ∶ bool → Γ ⊢ e₂ ∶ τ → Γ ⊢ e₃ ∶ τ →
     Γ ⊢ if e₁ then e₂ else e₃ ∶ τ
 
--- Program typing
+-- Program type judgments
 data _⊢_OK : Context → Program → Set where
   TProgEmpty : Γ ⊢ ∅ OK
   TProg : Γ ⊢ e ∶ τ → (Γ , x ∶ τ) ⊢ 𝒫 OK → Γ ⊢ x ≔ e ⨾ 𝒫 OK
 
+-- Configuration type judgments
 data _OK : Configuration → Set where
   TConfig : ⌊ ℳ ⌋ ⊢ 𝒫 OK → (ℳ , 𝒫) OK
-
---- Precedence

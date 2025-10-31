@@ -37,6 +37,67 @@ open import Cat.Typed.Base
 τ-functional (𝒟₁ Tmod 𝒟₂) (𝒟₃ Tmod 𝒟₄) = refl
 τ-functional (Tcond 𝒟₁ 𝒟₂ 𝒟₃) (Tcond 𝒟₄ 𝒟₅ 𝒟₆) = τ-functional 𝒟₂ 𝒟₅
 
+-- Lemma 1.2: Typing predicts and guarantees evaluation of expressions
+τ-⇓ : ⌊ ℳ ⌋ ⊢ e ∶ τ → ∃[ v ] ℳ ⊢ e ⇓ (τ , v)
+τ-⇓ Tval = _ , val⇓
+τ-⇓ {ℳ = ℳ , x ↦ (τ  , v)} TvarZero = v , here⇓
+τ-⇓ {ℳ = ℳ , y ↦ (τ′ , w)} (TvarSuc x≢y 𝒟) with v , 𝒟′ ← τ-⇓ 𝒟 = v , there⇓ x≢y 𝒟′
+τ-⇓ (Tnot 𝒟) with b , ⇓ ← τ-⇓ 𝒟 = M.not b , (not⇓ ⇓)
+τ-⇓ (𝒟₁ Tand 𝒟₂) with τ-⇓ 𝒟₁
+... | false , ⇓f = false , ⇓f f-and⇓
+... | true  , ⇓t with τ-⇓ 𝒟₂
+... | b , ⇓b = b , ⇓t t-and⇓ ⇓b
+τ-⇓ (𝒟₁ Tor 𝒟₂) with τ-⇓ 𝒟₁
+... | true , ⇓t = true , ⇓t t-or⇓
+... | false , ⇓f with τ-⇓ 𝒟₂
+... | b , ⇓b  = b , ⇓f f-or⇓ ⇓b
+τ-⇓ (𝒟₁ T== 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
+... | m , ⇓m | n , ⇓n = m M.== n , (⇓m ==⇓ ⇓n)
+τ-⇓ (T- 𝒟₁) with n , ⇓ ← τ-⇓ 𝒟₁ = M.- n , -⇓ ⇓
+τ-⇓ (𝒟₁ T+ 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
+... | m , ⇓m | n , ⇓n = m M.+ n , ⇓m +⇓ ⇓n
+τ-⇓ (𝒟₁ T- 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
+... | m , ⇓m | n , ⇓n = m M.- n , (⇓m -⇓ ⇓n)
+τ-⇓ (𝒟₁ T* 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
+... | m , ⇓m | n , ⇓n = m M.* n , ⇓m *⇓ ⇓n
+τ-⇓ (𝒟₁ Tmod 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
+... | m , ⇓m | n , ⇓n = m M.mod n , ⇓m mod⇓ ⇓n
+τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) with τ-⇓ 𝒟₁
+τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) | true  , ⇓t with τ-⇓ 𝒟₂
+... | v , ⇓v = v , then⇓ ⇓t ⇓v
+τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) | false , ⇓f with τ-⇓ 𝒟₃
+... | v , v⇓ = v , else⇓ ⇓f v⇓
+
+-- Partial converse: variable evaluation predicts typing
+var-⇓-τ : ℳ ⊢ var x ⇓ (τ , V) → ⌊ ℳ ⌋ ⊢ var x ∶ τ
+var-⇓-τ here⇓ = TvarZero
+var-⇓-τ (there⇓ x≢y ⇓) = TvarSuc x≢y (var-⇓-τ ⇓)
+
+
+--- Program typing properties
+
+OK-preservation : 𝒞 OK → 𝒞 —→ 𝒞′ → 𝒞′ OK
+OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v)
+  with refl ← ⇓-functional e⇓v (τ-⇓ e∶τ .proj₂) = TConfig ok
+
+OK-doesn't-go-wrong : 𝒞 OK → ∃[ ℳ′ ] 𝒞 —→* (ℳ′ , ∅)
+OK-doesn't-go-wrong (TConfig ok) = OK-doesn't-go-wrongₚ ok where
+  OK-doesn't-go-wrongₚ : ⌊ ℳ ⌋ ⊢ 𝒫 OK → ∃[ ℳ′ ] (ℳ , 𝒫) —→* (ℳ′ , ∅)
+  OK-doesn't-go-wrongₚ TProgEmpty = _ , refl
+  OK-doesn't-go-wrongₚ {ℳ} {x ≔ e ⨾ 𝒫} (TProg e∶τ ok)
+    with v  , e⇓v  ← τ-⇓ e∶τ
+    with ℳ′ , rest ← OK-doesn't-go-wrongₚ ok
+    = ℳ′ , step (assign e⇓v) rest
+
+-- Useful corollary: only the empty program is OK and Normal
+OK-normal-∅ : (ℳ , 𝒫) OK → Normal (ℳ , 𝒫) → 𝒫 ≡ ∅
+OK-normal-∅ {𝒫 = ∅} _ _ = refl
+OK-normal-∅ {𝒫 = x ≔ e ⨾ 𝒫} ok normal with OK-doesn't-go-wrong ok
+... | ℳ , step 𝒞—→𝒞′ _ = contradiction (_ , 𝒞—→𝒞′) normal
+
+
+--- Decidability
+
 τ-decidable : ∀ ℳ e → Dec (∃[ τ ] (ℳ ⊢ e ∶ τ))
 τ-decidable ℳ (val (τ , _)) = yes (τ , Tval)
 τ-decidable ∅ (var x) = no λ ()
@@ -105,45 +166,6 @@ open import Cat.Typed.Base
 ...   | yes refl  = yes (_ , Tcond 𝒟₁ 𝒟₂ 𝒟₃)
 ...   | no ¬τ₂≡τ₃ = no λ { (τ′ , Tcond 𝒟₁′ 𝒟₂′ 𝒟₃′) → ¬τ₂≡τ₃ (trans (τ-functional 𝒟₂ 𝒟₂′) (τ-functional 𝒟₃′ 𝒟₃)) }
 
-
--- Lemma 1.2: Typing predicts and guarantees evaluation of expressions
-τ-⇓ : ⌊ ℳ ⌋ ⊢ e ∶ τ → ∃[ v ] ℳ ⊢ e ⇓ (τ , v)
-τ-⇓ Tval = _ , val⇓
-τ-⇓ {ℳ = ℳ , x ↦ (τ  , v)} TvarZero = v , here⇓
-τ-⇓ {ℳ = ℳ , y ↦ (τ′ , w)} (TvarSuc x≢y 𝒟) with v , 𝒟′ ← τ-⇓ 𝒟 = v , there⇓ x≢y 𝒟′
-τ-⇓ (Tnot 𝒟) with b , ⇓ ← τ-⇓ 𝒟 = M.not b , (not⇓ ⇓)
-τ-⇓ (𝒟₁ Tand 𝒟₂) with τ-⇓ 𝒟₁
-... | false , ⇓f = false , ⇓f f-and⇓
-... | true  , ⇓t with τ-⇓ 𝒟₂
-... | b , ⇓b = b , ⇓t t-and⇓ ⇓b
-τ-⇓ (𝒟₁ Tor 𝒟₂) with τ-⇓ 𝒟₁
-... | true , ⇓t = true , ⇓t t-or⇓
-... | false , ⇓f with τ-⇓ 𝒟₂
-... | b , ⇓b  = b , ⇓f f-or⇓ ⇓b
-τ-⇓ (𝒟₁ T== 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
-... | m , ⇓m | n , ⇓n = m M.== n , (⇓m ==⇓ ⇓n)
-τ-⇓ (T- 𝒟₁) with n , ⇓ ← τ-⇓ 𝒟₁ = M.- n , -⇓ ⇓
-τ-⇓ (𝒟₁ T+ 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
-... | m , ⇓m | n , ⇓n = m M.+ n , ⇓m +⇓ ⇓n
-τ-⇓ (𝒟₁ T- 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
-... | m , ⇓m | n , ⇓n = m M.- n , (⇓m -⇓ ⇓n)
-τ-⇓ (𝒟₁ T* 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
-... | m , ⇓m | n , ⇓n = m M.* n , ⇓m *⇓ ⇓n
-τ-⇓ (𝒟₁ Tmod 𝒟₂) with τ-⇓ 𝒟₁ | τ-⇓ 𝒟₂
-... | m , ⇓m | n , ⇓n = m M.mod n , ⇓m mod⇓ ⇓n
-τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) with τ-⇓ 𝒟₁
-τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) | true  , ⇓t with τ-⇓ 𝒟₂
-... | v , ⇓v = v , then⇓ ⇓t ⇓v
-τ-⇓ (Tcond 𝒟₁ 𝒟₂ 𝒟₃) | false , ⇓f with τ-⇓ 𝒟₃
-... | v , v⇓ = v , else⇓ ⇓f v⇓
-
--- Partial converse: variable evaluation predicts typing
-var-⇓-τ : ℳ ⊢ var x ⇓ (τ , V) → ⌊ ℳ ⌋ ⊢ var x ∶ τ
-var-⇓-τ here⇓ = TvarZero
-var-⇓-τ (there⇓ x≢y ⇓) = TvarSuc x≢y (var-⇓-τ ⇓)
-
---- Program typing
-
 _⊢OK-decidable_ : ∀ Γ 𝒫 → Dec (Γ ⊢ 𝒫 OK)
 Γ ⊢OK-decidable ∅ = yes TProgEmpty
 Γ ⊢OK-decidable (x ≔ e ⨾ 𝒫) with τ-decidable Γ e
@@ -159,20 +181,3 @@ OK-decidable (ℳ , 𝒫) with ⌊ ℳ ⌋ ⊢OK-decidable 𝒫
 ... | yes ok = yes (TConfig ok)
 ... | no ¬ok = no λ { (TConfig ok) → ¬ok ok }
 
-OK-preservation : 𝒞 OK → 𝒞 —→ 𝒞′ → 𝒞′ OK
-OK-preservation (TConfig (TProg e∶τ ok)) (assign e⇓v)
-  with refl ← ⇓-functional e⇓v (τ-⇓ e∶τ .proj₂) = TConfig ok
-
-OK-doesn't-go-wrong : 𝒞 OK → ∃[ ℳ′ ] 𝒞 —→* (ℳ′ , ∅)
-OK-doesn't-go-wrong (TConfig ok) = OK-doesn't-go-wrongₚ ok where
-  OK-doesn't-go-wrongₚ : ⌊ ℳ ⌋ ⊢ 𝒫 OK → ∃[ ℳ′ ] (ℳ , 𝒫) —→* (ℳ′ , ∅)
-  OK-doesn't-go-wrongₚ TProgEmpty = _ , refl
-  OK-doesn't-go-wrongₚ {ℳ} {x ≔ e ⨾ 𝒫} (TProg e∶τ ok)
-    with v  , e⇓v  ← τ-⇓ e∶τ
-    with ℳ′ , rest ← OK-doesn't-go-wrongₚ ok
-    = ℳ′ , step (assign e⇓v) rest
-
-OK-normal-∅ : (ℳ , 𝒫) OK → Normal (ℳ , 𝒫) → 𝒫 ≡ ∅
-OK-normal-∅ {𝒫 = ∅} _ _ = refl
-OK-normal-∅ {𝒫 = x ≔ e ⨾ 𝒫} ok normal with OK-doesn't-go-wrong ok
-... | ℳ , step 𝒞—→𝒞′ _ = contradiction (_ , 𝒞—→𝒞′) normal
